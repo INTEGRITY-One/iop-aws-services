@@ -1,0 +1,536 @@
+{
+   "AWSTemplateFormatVersion":"2010-09-09",
+   "Parameters":{
+      "pPrivSubnet1Cidr":{
+         "Default":"172.31.01.0/24",
+         "Type":"String",
+         "Description":"Please enter the IP range (CIDR notation) for the private subnet in the first Availability Zone"
+      },
+      "pPrivSubnet2Cidr":{
+         "Default":"172.31.02.0/24",
+         "Type":"String",
+         "Description":"Please enter the IP range (CIDR notation) for the private subnet in the second Availability Zone"
+      },
+      "pPrivSubnet3Cidr":{
+         "Default":"172.31.03.0/24",
+         "Type":"String",
+         "Description":"Please enter the IP range (CIDR notation) for the private subnet in the third Availability Zone"
+      },
+      "pPubSubnet1Cidr":{
+         "Default":"172.31.04.0/24",
+         "Type":"String",
+         "Description":"Please enter the IP range (CIDR notation) for the public subnet in the first Availability Zone"
+      },
+      "pPubSubnet2Cidr":{
+         "Default":"172.31.05.0/24",
+         "Type":"String",
+         "Description":"Please enter the IP range (CIDR notation) for the public subnet in the second Availability Zone"
+      },
+      "pPubSubnet3Cidr":{
+         "Default":"172.31.06.0/24",
+         "Type":"String",
+         "Description":"Please enter the IP range (CIDR notation) for the public subnet in the third Availability Zone"
+      },
+      "pProtSubnet1Cidr":{
+         "Default":"172.31.07.0/24",
+         "Type":"String",
+         "Description":"Please enter the IP range (CIDR notation) for the protected subnet in the first Availability Zone"
+      },
+      "pProtSubnet2Cidr":{
+         "Default":"172.31.08.0/24",
+         "Type":"String",
+         "Description":"Please enter the IP range (CIDR notation) for the protected subnet in the second Availability Zone"
+      },
+      "pProtSubnet3Cidr":{
+         "Default":"172.31.09.0/24",
+         "Type":"String",
+         "Description":"Please enter the IP range (CIDR notation) for the protected subnet in the third Availability Zone"
+      },
+      "pVpcCidr":{
+         "Default":"172.31.0.0/20",
+         "Type":"String",
+         "Description":"Please enter the IP range (CIDR notation) for this VPC"
+      }
+   },
+   "Resources":{
+      "VPC":{
+         "Type":"AWS::EC2::VPC",
+         "Properties":{
+            "CidrBlock":{
+               "Ref":"pVpcCidr"
+            },
+            "EnableDnsSupport":"true",
+            "EnableDnsHostnames":"true",
+            "InstanceTenancy":"dedicated"
+         }
+      },
+      "privSubnet3":{
+         "Type":"AWS::EC2::Subnet",
+         "Properties":{
+            "VpcId":{
+               "Ref":"VPC"
+            },
+            "CidrBlock":{
+               "Ref":"pPrivSubnet3Cidr"
+            }
+         }
+      },
+      "privSubnet2":{
+         "Type":"AWS::EC2::Subnet",
+         "Properties":{
+            "VpcId":{
+               "Ref":"VPC"
+            },
+            "CidrBlock":{
+               "Ref":"pPrivSubnet2Cidr"
+            }
+         }
+      },
+      "privSubnet1":{
+         "Type":"AWS::EC2::Subnet",
+         "Properties":{
+            "VpcId":{
+               "Ref":"VPC"
+            },
+            "CidrBlock":{
+               "Ref":"pPrivSubnet1Cidr"
+            }
+         }
+      },
+      "pubSubnet3":{
+         "Type":"AWS::EC2::Subnet",
+         "Properties":{
+            "VpcId":{
+               "Ref":"VPC"
+            },
+            "CidrBlock":{
+               "Ref":"pPubSubnet3Cidr"
+            }
+         }
+      },
+      "pubSubnet2":{
+         "Type":"AWS::EC2::Subnet",
+         "Properties":{
+            "VpcId":{
+               "Ref":"VPC"
+            },
+            "CidrBlock":{
+               "Ref":"pPubSubnet2Cidr"
+            }
+         }
+      },
+      "pubSubnet1":{
+         "Type":"AWS::EC2::Subnet",
+         "Properties":{
+            "VpcId":{
+               "Ref":"VPC"
+            },
+            "CidrBlock":{
+               "Ref":"pPubSubnet1Cidr"
+            }
+         }
+      },
+      "protSubnet3":{
+         "Type":"AWS::EC2::Subnet",
+         "Properties":{
+            "VpcId":{
+               "Ref":"VPC"
+            },
+            "CidrBlock":{
+               "Ref":"pProtSubnet3Cidr"
+            }
+         }
+      },
+      "protSubnet2":{
+         "Type":"AWS::EC2::Subnet",
+         "Properties":{
+            "VpcId":{
+               "Ref":"VPC"
+            },
+            "CidrBlock":{
+               "Ref":"pProtSubnet2Cidr"
+            }
+         }
+      },
+      "protSubnet1":{
+         "Type":"AWS::EC2::Subnet",
+         "Properties":{
+            "VpcId":{
+               "Ref":"VPC"
+            },
+            "CidrBlock":{
+               "Ref":"pProtSubnet1Cidr"
+            }
+         }
+      },
+      "NatGatewayEIP1":{
+         "DependsOn":[
+            "VPCGatewayAttachment"
+         ],
+         "Type":"AWS::EC2::EIP",
+         "Properties":{
+            "Domain":"vpc"
+         }
+      },
+      "NatGateway1":{
+         "Type":"AWS::EC2::NatGateway",
+         "Properties":{
+            "SubnetId":{
+               "Ref":"pubSubnet1"
+            },
+            "AllocationID":{
+               "Fn::GetAtt":[
+                  "NatGatewayEIP1",
+                  "AllocationId"
+               ]
+            }
+         }
+      },
+      "NatGatewayEIP2":{
+         "DependsOn":[
+            "VPCGatewayAttachment"
+         ],
+         "Type":"AWS::EC2::EIP",
+         "Properties":{
+            "Domain":"vpc"
+         }
+      },
+      "NatGateway2":{
+         "Type":"AWS::EC2::NatGateway",
+         "Properties":{
+            "SubnetId":{
+               "Ref":"pubSubnet2"
+            },
+            "AllocationID":{
+               "Fn::GetAtt":[
+                  "NatGatewayEIP2",
+                  "AllocationId"
+               ]
+            }
+         }
+      },
+      "NatGatewayEIP3":{
+         "DependsOn":[
+            "VPCGatewayAttachment"
+         ],
+         "Type":"AWS::EC2::EIP",
+         "Properties":{
+            "Domain":"vpc"
+         }
+      },
+      "NatGateway3":{
+         "Type":"AWS::EC2::NatGateway",
+         "Properties":{
+            "SubnetId":{
+               "Ref":"pubSubnet3"
+            },
+            "AllocationID":{
+               "Fn::GetAtt":[
+                  "NatGatewayEIP3",
+                  "AllocationId"
+               ]
+            }
+         }
+      },
+      "pubRouteTable":{
+         "Type":"AWS::EC2::RouteTable",
+         "Properties":{
+            "VpcId":{
+               "Ref":"VPC"
+            }
+         }
+      },
+      "privRouteTable":{
+         "Type":"AWS::EC2::RouteTable",
+         "Properties":{
+            "VpcId":{
+               "Ref":"VPC"
+            }
+         }
+      },
+      "protRouteTable":{
+         "Type":"AWS::EC2::RouteTable",
+         "Properties":{
+            "VpcId":{
+               "Ref":"VPC"
+            }
+         }
+      },
+      "RouteToNAT1":{
+         "Type":"AWS::EC2::Route",
+         "Properties":{
+            "RouteTableId":{
+               "Ref":"privRouteTable"
+            },
+            "DestinationCidrBlock":"0.0.0.0/0",
+            "GatewayId":{
+               "Ref":"NatGateway1"
+            }
+         }
+      },
+      "RouteToNAT2":{
+         "Type":"AWS::EC2::Route",
+         "Properties":{
+            "RouteTableId":{
+               "Ref":"privRouteTable"
+            },
+            "DestinationCidrBlock":"0.0.0.0/0",
+            "GatewayId":{
+               "Ref":"NatGateway2"
+            }
+         }
+      },
+      "RouteToNAT3":{
+         "Type":"AWS::EC2::Route",
+         "Properties":{
+            "RouteTableId":{
+               "Ref":"privRouteTable"
+            },
+            "DestinationCidrBlock":"0.0.0.0/0",
+            "GatewayId":{
+               "Ref":"NatGateway3"
+            }
+         }
+      },
+      "RouteToInternet":{
+         "Type":"AWS::EC2::Route",
+         "Properties":{
+            "RouteTableId":{
+               "Ref":"pubRouteTable"
+            },
+            "DestinationCidrBlock":"0.0.0.0/0",
+            "GatewayId":{
+               "Ref":"InternetGateway1"
+            }
+         }
+      },
+      "InternetGateway1":{
+         "Type":"AWS::EC2::InternetGateway",
+         "Properties":{
+            
+         }
+      },
+      "VPCGatewayAttachment":{
+         "Type":"AWS::EC2::VPCGatewayAttachment",
+         "Properties":{
+            "InternetGatewayId":{
+               "Ref":"InternetGateway1"
+            },
+            "VpcId":{
+               "Ref":"VPC"
+            }
+         }
+      },
+      "PrivateSubnet1RouteTableAssociation":{
+         "Type":"AWS::EC2::SubnetRouteTableAssociation",
+         "Properties":{
+            "RouteTableId":{
+               "Ref":"privRouteTable"
+            },
+            "SubnetId":{
+               "Ref":"privSubnet1"
+            }
+         }
+      },
+      "PrivateSubnet2RouteTableAssociation":{
+         "Type":"AWS::EC2::SubnetRouteTableAssociation",
+         "Properties":{
+            "RouteTableId":{
+               "Ref":"privRouteTable"
+            },
+            "SubnetId":{
+               "Ref":"privSubnet2"
+            }
+         }
+      },
+      "PrivateSubnet3RouteTableAssociation":{
+         "Type":"AWS::EC2::SubnetRouteTableAssociation",
+         "Properties":{
+            "RouteTableId":{
+               "Ref":"privRouteTable"
+            },
+            "SubnetId":{
+               "Ref":"privSubnet3"
+            }
+         }
+      },
+      "PublicSubnet1RouteTableAssociation":{
+         "Type":"AWS::EC2::SubnetRouteTableAssociation",
+         "Properties":{
+            "RouteTableId":{
+               "Ref":"pubRouteTable"
+            },
+            "SubnetId":{
+               "Ref":"pubSubnet1"
+            }
+         }
+      },
+      "PublicSubnet2RouteTableAssociation":{
+         "Type":"AWS::EC2::SubnetRouteTableAssociation",
+         "Properties":{
+            "RouteTableId":{
+               "Ref":"pubRouteTable"
+            },
+            "SubnetId":{
+               "Ref":"pubSubnet2"
+            }
+         }
+      },
+      "PublicSubnet3RouteTableAssociation":{
+         "Type":"AWS::EC2::SubnetRouteTableAssociation",
+         "Properties":{
+            "RouteTableId":{
+               "Ref":"pubRouteTable"
+            },
+            "SubnetId":{
+               "Ref":"pubSubnet3"
+            }
+         }
+      },
+      "ProtectedSubnet1RouteTableAssociation":{
+         "Type":"AWS::EC2::SubnetRouteTableAssociation",
+         "Properties":{
+            "RouteTableId":{
+               "Ref":"protRouteTable"
+            },
+            "SubnetId":{
+               "Ref":"protSubnet1"
+            }
+         }
+      },
+      "ProtectedSubnet2RouteTableAssociation":{
+         "Type":"AWS::EC2::SubnetRouteTableAssociation",
+         "Properties":{
+            "RouteTableId":{
+               "Ref":"protRouteTable"
+            },
+            "SubnetId":{
+               "Ref":"protSubnet2"
+            }
+         }
+      },
+      "ProtectedSubnet3RouteTableAssociation":{
+         "Type":"AWS::EC2::SubnetRouteTableAssociation",
+         "Properties":{
+            "RouteTableId":{
+               "Ref":"protRouteTable"
+            },
+            "SubnetId":{
+               "Ref":"protSubnet3"
+            }
+         }
+      }
+   },
+   "Outputs":{
+      "VPCID":{
+         "Description":"ID for the VPC",
+         "Value":{
+            "Ref": "VPC"
+         },
+	"Export": {
+	    "Name": {
+		"Fn::Sub": "${AWS::StackName}-VPCID" 
+	    }
+	}
+      },
+      "privateSubnet1":{
+         "Description":"ID for first private subnet",
+         "Value":{
+            "Ref":"privSubnet1"
+         },
+	"Export": {
+	    "Name": {
+		"Fn::Sub": "${AWS::StackName}-privateSubnet1" 
+	    }
+	}
+      },
+      "privateSubnet2":{
+         "Description":"ID for second private subnet",
+         "Value":{
+            "Ref":"privSubnet2"
+         },
+	 "Export": {
+	    "Name": {
+		"Fn::Sub": "${AWS::StackName}-privateSubnet2" 
+	    }
+	 }
+      },
+      "privateSubnet3":{
+         "Description":"ID for third private subnet",
+         "Value":{
+            "Ref":"privSubnet3"
+         },
+	 "Export": {
+	    "Name": {
+		"Fn::Sub": "${AWS::StackName}-privateSubnet3" 
+	    }
+	}
+      },
+      "publicSubnet1":{
+         "Description":"ID for first public subnet",
+         "Value":{
+            "Ref":"pubSubnet1"
+         },
+	 "Export": {
+	    "Name": {
+		"Fn::Sub": "${AWS::StackName}-publicSubnet1" 
+	    }
+	}
+      },
+      "publicSubnet2":{
+         "Description":"ID for second public subnet",
+         "Value":{
+            "Ref":"pubSubnet2"
+         },
+	 "Export": {
+	    "Name": {
+		"Fn::Sub": "${AWS::StackName}-publicSubnet2" 
+	    }
+	}
+      },
+      "publicSubnet3":{
+         "Description":"ID for third public subnet",
+         "Value":{
+            "Ref":"pubSubnet3"
+         },
+	 "Export": {
+	    "Name": {
+		"Fn::Sub": "${AWS::StackName}-publicSubnet3" 
+	    }
+	}
+      },
+      "protectedSubnet1":{
+         "Description":"ID for first protected subnet",
+         "Value":{
+            "Ref":"protSubnet1"
+         },
+	 "Export": {
+	    "Name": {
+		"Fn::Sub": "${AWS::StackName}-protectedSubnet1" 
+	    }
+	}
+      },
+      "protectedSubnet2":{
+         "Description":"ID for second protected subnet",
+         "Value":{
+            "Ref":"protSubnet2"
+         },
+	 "Export": {
+	    "Name": {
+		"Fn::Sub": "${AWS::StackName}-protectedSubnet2" 
+	    }
+	}
+      },
+      "protectedSubnet3":{
+         "Description":"ID for third protected subnet",
+         "Value":{
+            "Ref":"protSubnet3"
+         },
+	 "Export": {
+	    "Name": {
+		"Fn::Sub": "${AWS::StackName}-protectedSubnet3" 
+	    }
+	}
+      }
+   }
+}
