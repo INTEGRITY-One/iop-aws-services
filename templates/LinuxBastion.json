@@ -1,0 +1,272 @@
+{
+	"AWSTemplateFormateVersion": "2010-09-09",
+	"Parameters": {
+	     "pNetworkStackName": {
+		    "Description": "Name of an active Cloudformation stack that contains the networking resources, such as the VPC and subnets, that will be used in this stack.",
+		    "Type": "String",
+		    "Default": "NetworkCrossStack"
+	     },
+	     "pRemoteAccessCIDR": {
+		    "Description": "Allowed CIDR block for external SSH access to the bastions",
+		    "Type": "String",
+		    "AllowedPattern": "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]).){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/([0-9]|[1-2][0-9]|3[0-2]))$"
+	     },
+	     "pBastionAMIOS": {
+		    "AllowedValues": [
+		        "Amazon-Linux2-HVM",
+		        "CentOS-7-HVM",
+		        "Ubuntu-Server-20.04-LTS-HVM",
+		        "SUSE-SLES-15-HVM"
+	        ],
+		    "Default": "Amazon-Linux2-HVM",
+		    "Description": "The Linux distribution for the AMI to be used for the bastion instances.",
+		    "Type": "String"
+	    },
+	    "pBastionHostName": {
+	    	"Default": "LinuxBastion",
+	    	"Description": "The value used for the name tag of the bastion host.",
+	 	    "Type": "String"
+	    },
+	    "pBastionInstanceType": {
+	        "Description": "Amazon EC2 Instance type for the bastion instances.",
+		    "Type": "String",
+		    "Default": "t2.micro",
+		    "AllowedValues": [
+		        "t2.nano",
+		        "t2.micro",
+		        "t2.small",
+            	"t2.medium",
+            	"t2.large",
+            	"t3.micro",
+            	"t3.small",
+            	"t3.medium",
+            	"t3.large",
+            	"t3.xlarge",
+            	"t3.2xlarge",
+            	"m3.large",
+            	"m3.xlarge",
+            	"m3.2xlarge",
+            	"m4.large",
+            	"m4.xlarge",
+            	"m4.2xlarge",
+            	"m4.4xlarge"
+		    ]
+	    },
+	    "pKeyPairName": {
+		    "Description": "Name of an existing public/private key pair, which allows you to securely connect to your instance after it launches.",
+		    "Type": "AWS::EC2::KeyPair::KeyName"
+	    },
+	    "pNumBastionHosts": {
+		    "AllowedValues": [
+		        "1",
+		        "2",
+		        "3"
+		    ],
+		    "Default": "3", 
+		    "Description": "The number of bastion hosts to create. The maximum is three.",
+		    "Type": "String"
+	    }
+	},
+	"Mappings": {
+	    "RegionMap": {
+		    "us-gov-west-1" : {
+      			"AMZNLINUX2": "ami-cb2a11aa",
+      			"SLES15HVM": "ami-57c0ba36"
+		    },
+    		"us-gov-east-1" : {
+      			"AMZNLINUX2": "ami-c2e209b3",
+      			"SLES15HVM": "ami-05e4bedfad53425e9"
+		    },
+		    "us-east-1": {
+		        "AMZNLINUX2": "ami-04d29b6f966df1537",
+      			"US2004HVM": "ami-0be3f0371736d5394",
+      			"CENTOS7HVM": "ami-0affd4508a5d2481b",
+      			"SLES15HVM": "ami-0b1764f3d7d2e2316"
+		    },
+		    "us-east-2": {
+			    "AMZNLINUX2": "ami-09558250a3419e7d0",
+      			"US2004HVM": "ami-0b289b3e97908e84e",
+      			"CENTOS7HVM": "ami-01e36b7901e884a10",
+      			"SLES15HVM": "ami-05ea824317ffc0c20"
+		    },
+		    "us-west-1": {
+		      	"AMZNLINUX2": "ami-08d9a394ac1c2994c",
+      			"US2004HVM": "ami-05ddb1bcba9ace858",
+      			"CENTOS7HVM": "ami-098f55b4287a885ba",
+      			"SLES15HVM": "ami-00e34a7624e5a7107"
+		    },
+	    	"us-west-2": {
+      			"AMZNLINUX2": "ami-0e472933a1395e172",
+      			"US2004HVM": "ami-0c007ac192ba0744b",
+      			"CENTOS7HVM": "ami-0bc06212a56393ee1",
+      			"SLES15HVM": "ami-0f1e3b3fb0fec0361"
+	    	},
+		    "eu-west-1": {
+		        "AMZNLINUX2": "ami-0ce1e3f77cd41957e",
+      			"US2004HVM": "ami-055958ae2f796344b",
+      			"CENTOS7HVM": "ami-0b850cf02cc00fdc8",
+      			"SLES15HVM": "ami-0a58a1b152ba55f1d"
+		    },
+		    "eu-west-2": {
+			    "AMZNLINUX2": "ami-08b993f76f42c3e2f",
+      			"US2004HVM": "ami-09c4a4b013e66b291",
+      			"CENTOS7HVM": "ami-09e5afc68eed60ef4",
+      			"SLES15HVM": "ami-01497522185aaa4ee"
+		    },
+		    "eu-west-3": {
+			    "AMZNLINUX2": "ami-0e9c91a3fc56a0376",
+      			"US2004HVM": "ami-0b14b90c53fdbb103",
+      			"CENTOS7HVM": "ami-0cb72d2e599cffbf9",
+      			"SLES15HVM": "ami-0f238bd4c6fdbefb0"
+		    },
+		    "ca-central-1": {
+		        "AMZNLINUX2": "ami-0fca0f98dc87d39df",
+		        "US2004HVM": "ami-0d4ae853aceec6074",
+      		    "CENTOS7HVM": "ami-04a25c39dc7a8aebb",
+      	 	    "SLES15HVM": "ami-0c97d9b588207dad6"
+		    }
+	    },
+	    "LinuxAMINameMap": {
+    		"Amazon-Linux2-HVM": {
+      			"Code": "AMZNLINUX2",
+      			"OS": "Amazon"
+		    },
+    		"CentOS-7-HVM": {
+      			"Code": "CENTOS7HVM",
+      			"OS": "CentOS"
+		    },
+    		"Ubuntu-Server-20.04-LTS-HVM": {
+      			"Code": "US2004HVM",
+      			"OS": "Ubuntu"
+		    },
+    		"SUSE-SLES-15-HVM": {
+      			"Code": "SLES15HVM",
+      			"OS": "SLES"
+		    }
+	    }
+	},
+	"Resources": {
+	    "BastionMainLogGroup": {
+		    "Type": "AWS::Logs::LogGroup"
+	    },
+	    "BastionAutoScalingGroup": {
+		    "Type": "AWS::AutoScaling::AutoScalingGroup",
+	        "Properties": {
+		        "LaunchConfigurationName": {
+			        "Ref": "BastionLaunchConfiguration"
+		        },
+		        "VPCZoneIdentifier": [
+			        {"Fn::ImportValue": {"Fn::Sub": "${NetworkStackName}-publicSubnet1"} },
+			        {"Fn::ImportValue": {"Fn::Sub": "${NetworkStackName}-publicSubnet2"} },
+			        {"Fn::ImportValue": {"Fn::Sub": "${NetworkStackName}-publicSubnet3"} }
+		        ],
+		        "MinSize": {
+			        "Ref": "NumBastionHosts"
+		        },
+		        "MaxSize": {
+		    	    "Ref": "NumBastionHosts"
+		        },
+		        "Cooldown": "900",
+		        "DesiredCapacity": {
+			        "Ref": "NumBastionHosts"
+		        },
+		        "Tags": [
+			        {
+			        "Key": "Name",
+			        "Value": {
+				        "Ref": "BastionHostName"
+			        },
+			        "PropagateAtLaunch": "True"
+			        }
+		        ]
+	        }
+		},
+		"CreationPolicy": {
+		    "ResourceSignal": {
+			    "Count": "null",
+			    "Timeout": "PT60M"
+		    },
+		    "AutoScalingCreationPolicy": {
+			    "MinSuccessfulInstancesPercent": "100"
+		    }
+		},
+		"UpdatePolicy": {
+		    "AutoScalingReplacingUpdate": {
+			    "WillReplace": "true"
+		    }
+	    },
+	    "BastionLaunchConfiguration": {
+		    "Type": "AWS::AutoScaling::LaunchConfiguration",
+		    "Properties": {
+		        "AssociatePublicIpAddress": "true",
+		        "ImageId": {
+			        "Fn::FindInMap": [
+			            "RegionMap", 
+				        {  
+				            "Ref": "AWS::Region"
+				        },
+			            { "Fn::FindInMap": [
+				            "LinuxAMINameMap",
+				            {
+				                "Ref": "pBastionAMIOS"
+				            },
+				            "Code"
+				          ]
+			            }
+			        ]
+		        }, 
+		        "SecurityGroups":
+		            {
+				        "Ref": "BastionSecurityGroup"
+			        },
+		        "InstanceType":
+		           {
+				        "Ref": "BastionInstanceType"
+			        }
+		    }
+	    },
+	    "BastionSecurityGroup": {
+		    "Type": "AWS::EC2::SecurityGroup",
+		    "Properties": {
+		        "GroupDescription": "Enables SSH Access to Bastion Hosts",
+		        "VpcID": {
+		                    "Fn::ImportValue": {
+			                    "Fn::Sub": "${NetworkStackName}-VPCID"
+			                } 
+		        },
+		        "SecurityGroupIngress": [
+			        {
+		    	        "IpProtocol": "tcp",
+			            "FromPort": "22",
+			            "ToPort": "22",
+			            "CidrIp": {
+			    	        "Ref": "pRemoteAccessCIDR"
+			            }
+			        },
+			        {
+			            "IpProtocol": "icmp",
+			            "FromPort": "-1",
+			            "ToPort": "-1",
+			            "CidrIp": {
+			                "Ref": "pRemoteAccessCIDR"
+			            }
+			        }
+		        ]
+		    }
+	    }
+	},
+	"Outputs": {
+	    "BastionAutoScalingGroup": {
+			"Description": "Auto Scaling group reference ID.",
+			"Value": {
+				"Ref": "BastionAutoScalingGroup"
+			},
+			"Export": {
+				"Name": 
+				    {
+				        "Fn::Sub": "${AWS::StackName}-BastionAutoScalingGroup"
+				    }
+			}
+	    }
+	}
+}
