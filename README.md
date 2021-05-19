@@ -1,11 +1,11 @@
 # iop-aws-services
-##Introduction
+## Introduction
 IOP AWS Services contains AWS Cloudformation templates that can be used to quickly stand up AWS resources for a working software environment. These Cloudformation templates allow for managing the software infrastructure and easily replicating and making changes to infrastructure.
 
-##Cloudformation Templates available
+## Cloudformation Templates available
 Currently, you can use the BaselineNetwork, BaselineSecurity, and LinuxBastionHost Cloudformation Templates. BaselineNetwork sets up a VPC, subnets, gateways, route tables, and routes. BaselineSecurity creates NACLs for the subnets. BaselineSecurity depends on the creation of BaselineNetwork. LinuxBastionHost deploys Linux bastion hosts into the VPC, the bastion hosts providing secure access to Linux instances located in the subnets. LinuxBastionHost also depends on the creation of BaselineNetwork.
 
-##How to use
+## How to use
 First, make sure you have downloaded the desired template files from this GitHub repository to your computer.
 Log in to your AWS account and choose an AWS region where you want the AWS resources to be created. Navigate to the CloudFormation service and click Create stack. Typically, you will choose Create stack with new resources (standard). Choose "Template is ready" and "Upload a template file". Select the desired template file you have downloaded to your computer. Click Next. Enter an appropriate stack name: by default you can make the stack name the name of the template. You will see a list of parameters you can configure for your template. 
 
