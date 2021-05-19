@@ -240,7 +240,23 @@
             }
          }
       },
-      "privRouteTable":{
+      "privRouteTable1":{
+         "Type":"AWS::EC2::RouteTable",
+         "Properties":{
+            "VpcId":{
+               "Ref":"VPC"
+            }
+         }
+      },
+      "privRouteTable2":{
+         "Type":"AWS::EC2::RouteTable",
+         "Properties":{
+            "VpcId":{
+               "Ref":"VPC"
+            }
+         }
+      },
+      "privRouteTable3":{
          "Type":"AWS::EC2::RouteTable",
          "Properties":{
             "VpcId":{
@@ -260,10 +276,10 @@
          "Type":"AWS::EC2::Route",
          "Properties":{
             "RouteTableId":{
-               "Ref":"privRouteTable"
+               "Ref":"privRouteTable1"
             },
             "DestinationCidrBlock":"0.0.0.0/0",
-            "GatewayId":{
+            "NatGatewayId":{
                "Ref":"NatGateway1"
             }
          }
@@ -272,10 +288,10 @@
          "Type":"AWS::EC2::Route",
          "Properties":{
             "RouteTableId":{
-               "Ref":"privRouteTable"
+               "Ref":"privRouteTable2"
             },
             "DestinationCidrBlock":"0.0.0.0/0",
-            "GatewayId":{
+            "NatGatewayId":{
                "Ref":"NatGateway2"
             }
          }
@@ -284,10 +300,10 @@
          "Type":"AWS::EC2::Route",
          "Properties":{
             "RouteTableId":{
-               "Ref":"privRouteTable"
+               "Ref":"privRouteTable3"
             },
             "DestinationCidrBlock":"0.0.0.0/0",
-            "GatewayId":{
+            "NatGatewayId":{
                "Ref":"NatGateway3"
             }
          }
@@ -325,7 +341,7 @@
          "Type":"AWS::EC2::SubnetRouteTableAssociation",
          "Properties":{
             "RouteTableId":{
-               "Ref":"privRouteTable"
+               "Ref":"privRouteTable1"
             },
             "SubnetId":{
                "Ref":"privSubnet1"
@@ -336,7 +352,7 @@
          "Type":"AWS::EC2::SubnetRouteTableAssociation",
          "Properties":{
             "RouteTableId":{
-               "Ref":"privRouteTable"
+               "Ref":"privRouteTable2"
             },
             "SubnetId":{
                "Ref":"privSubnet2"
@@ -347,7 +363,7 @@
          "Type":"AWS::EC2::SubnetRouteTableAssociation",
          "Properties":{
             "RouteTableId":{
-               "Ref":"privRouteTable"
+               "Ref":"privRouteTable3"
             },
             "SubnetId":{
                "Ref":"privSubnet3"
