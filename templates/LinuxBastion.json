@@ -175,14 +175,6 @@
 			        }
 		        ]
 	        },
-		    "CreationPolicy": {
-		            "ResourceSignal": {
-			            "Timeout": "PT60M"
-		            },
-		            "AutoScalingCreationPolicy": {
-			            "MinSuccessfulInstancesPercent": "100"
-		            }
-		    },
 		    "UpdatePolicy": {
 		         "AutoScalingReplacingUpdate": {
 			            "WillReplace": "true"

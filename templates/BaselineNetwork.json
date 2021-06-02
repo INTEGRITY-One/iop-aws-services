@@ -61,7 +61,7 @@
             },
             "EnableDnsSupport":"true",
             "EnableDnsHostnames":"true",
-            "InstanceTenancy":"dedicated"
+            "InstanceTenancy":"default"
          }
       },
       "privSubnet3":{
