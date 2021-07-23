@@ -1,0 +1,114 @@
+Description: This template deploys an ECS cluster to the provided VPC and subnets using an Auto Scaling Group
+
+Parameters:
+  pEnvironmentName:
+    Description: An environment name that will be prefixed to resource names
+    Type: String
+
+  pInstanceType:
+    Description: Instance type used to build the ECS cluster
+    Type: String
+    Default: c4.large
+
+  pClusterSize:
+    Description: Number of ECS hosts to initially deploy
+    Type: Number
+    Default: 4
+
+  pVPC:
+    Description: ID of the VPC to which this ECS Cluster should be deployed
+    Type: AWS::EC2::VPC::Id
+
+  pSubnets: 
+    Description: ID of the Subnets to which this ECS Cluster should be deployed
+    Type: List<AWS::EC2::Subnet::Id>
+
+  pECSAMI:
+    Description: ECS-Optimized AMI ID
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ecs/optimized-ami/amazon-linux/recommended/image_id
+
+  pRemoteAccessCIDR:
+    Description: Please enter the IP address in CIDR notation you want to allow to access the ECS instances.
+    Type: String
+
+  pRepositoryName:
+    Description: Please enter the desired name for the ECR Repository.
+    Type: String
+
+Resources:
+  ECRRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Ref pRepositoryName
+
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Ref pEnvironmentName
+      CapacityProviders: 
+        - FARGATE
+
+  ECSAutoScalingGroup:
+    DependsOn: ECSCluster
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier: !Ref pSubnets
+      LaunchConfigurationName: !Ref ECSLaunchConfiguration
+      MinSize: !Ref pClusterSize
+      MaxSize: !Ref pClusterSize
+      DesiredCapacity: !Ref pClusterSize
+      Tags:
+        -Key: Name
+        Value: !Sub ${pEnvironmentName} ECS host
+        PropagateAtLaunch: true
+      UpdatePolicy:
+        AutoScalingRollingUpdate:
+          MinInstancesInService: 1
+          MaxBatchSize: 1
+          PauseTime: PT15M
+          SuspendProcesses:
+            - HealthCheck
+            - ReplaceUnhealthy
+            - AZRebalance
+            - AlarmNotification
+            - ScheduledActions
+          WaitOnResourceSignals: true
+
+  ECSLaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId: !Ref pECSAMI
+      InstanceType: !Ref pInstanceType
+      SecurityGroups:
+        - !Ref ECSSecurityGroup
+  ECSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription:  SSH access from the provided Remote Access IP Address in CIDR notation.  
+        #enable you to connect to your container instance from your IP address using SSH. You can also add rules that allow inbound and outbound HTTP and HTTPS access from anywhere. Add any rules to open ports that are required by your tasks. Container instances require external network access to communicate with the Amazon ECS service endpoint.
+        #HTTP Source anywhere
+        #HTTPS Source anywhere
+        #SSH Source Custom IP your ip address in cidr notation  
+      VpcId: !Ref pVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !Ref pRemoteAccessCIDR
+        - IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: !Ref pRemoteAccessCIDR
+Outputs:
+  Cluster:
+    Description: A reference to the ECS cluster
+    Value: !Ref ECSCluster
+
+  ECSAutoScalingGroupName:
+    Description: A reference to the ECS AutoScaling Group Name
+    Value: !Ref ECSAutoScalingGroup
+
+  ECRRepository:
+    Description: A reference to the ECR Repository
+    Value: !Ref ECRRepository

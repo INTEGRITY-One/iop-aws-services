@@ -1,0 +1,30 @@
+Description: This template applies a Docker image from an ECR repository to a ECS cluster.
+
+Parameters:
+  pVPC:
+    Description: ID of the ECS Cluster to which the Docker image should be deployed
+    Type: AWS::ECS::Cluster::Id
+
+Resources:
+  taskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      ContainerDefinitions:
+        Name:
+          Ref: "AppName"
+        MountPoints:
+          -
+            SourceVolume: 
+
+Outputs:
+  Cluster:
+    Description: A reference to the ECS cluster
+    Value: !Ref ECSCluster
+
+  ECSAutoScalingGroupName:
+    Description: A reference to the ECS AutoScaling Group Name
+    Value: !Ref ECSAutoScalingGroup
+
+  ECRRepository:
+    Description: A reference to the ECR Repository
+    Value: !Ref ECRRepository
